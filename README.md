@@ -1,0 +1,1 @@
+this is a chrome extension which can be used to monitor the http://markets.wallstreetcn.com and get the latest news and price .

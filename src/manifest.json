@@ -1,0 +1,70 @@
+{
+  "name": "__fx_monitor__",
+  "version": "1.0",
+  "description": "fx monitor",
+  "icons": {
+    "16": "image/FX16.png",
+    "48": "image/FX48.png",
+    "128": "image/FX128.png"
+  },
+  "browser_action": {
+    "default_title": "Monitor the price of EUR/USD.",
+    "default_icon": "image/FX48.png",
+    "default_popup":"views/viewer.html"
+  },
+  "permissions": [
+    "tabs",
+    "webNavigation",
+    "webRequest",
+    "background",
+    "<all_urls>",
+    "storage",
+    "notifications"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "http://markets.wallstreetcn.com/*"
+      ],
+      "js": [
+        "javascript/Utils.js",
+        "javascript/HtmlAnalyzer.js",
+        "javascript/jquery-2.1.1.js"
+      ],
+      "run_at": "document_idle",
+      "all_frames": false
+    },
+    {
+      "matches": [
+        "http://markets.wallstreetcn.com/*"
+      ],
+      "js": [
+        "javascript/Utils.js",
+        "javascript/EmbedHtmlAnalyzer.js",
+        "javascript/jquery-2.1.1.js"
+      ],
+      "run_at": "document_idle",
+      "all_frames": true
+    },
+    {
+      "matches": [
+        "http://live.wallstreetcn.com/*"
+      ],
+      "js": [
+        "javascript/Utils.js",
+        "javascript/NewsHtmlAnalyzer.js",
+        "javascript/TipsHtmlAnalyzer.js",
+        "javascript/jquery-2.1.1.js"
+      ],
+      "run_at": "document_idle",
+      "all_frames": true
+    }
+  ],
+  "background": {
+    "page": "views/background.html"
+  },
+  "web_accessible_resources": [
+    "image/*"
+  ],
+  "manifest_version": 2
+}
