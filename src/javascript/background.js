@@ -7,9 +7,9 @@ var namespace = require("fx.wall.street.controller", function(namespace) {
         openPrice: null,
         closePrice: null,
         time: null,
-        change: 5,
-        defaultChangeThr:5,
-        changeStep:5
+        change: 4.9,
+        defaultChangeThr:4.9,
+        changeStep:0.49
       }
     };
     this.timeThreshold = 60*5 * 1000;
@@ -160,10 +160,16 @@ var namespace = require("fx.wall.street.controller", function(namespace) {
     setTimeout(closeFunction, 10000);
   };
   namespace.NewsController.prototype.insertNews = function(news) {
+    var newsTemp=[];
+    for(var i=0;i<news.length;i++){
+      if(news[i].importance>=3){
+        newsTemp.push(news[i]);
+      }
+    }
     if (news.length == 0) {
       return;
     }
-    globalNews = globalNews.concat(news);
+    globalNews = globalNews.concat(newsTemp);
     while (globalNews.length > 100) {
       globalNews.shift();
     }

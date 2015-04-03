@@ -40,7 +40,8 @@ require("fx.wall.street.analyzer",function(namespace){
          var title=time;
          var url=$(item.find('a')[0]).attr('href');
          var content=item.find('.content').text();
-        return {time:time,url:url,content:content,title:title}
+         var importance=item.attr('data-importance');
+        return {time:time,url:url,content:content,title:title,importance:importance}
     };
     namespace.newsAnalyzer=new namespace.NewsAnalyzer();
     setTimeout(function(){
