@@ -9,7 +9,7 @@ var namespace = require("fx.wall.street.controller", function(namespace) {
         time: null,
         change: 4.9,
         defaultChangeThr:4.9,
-        changeStep:0.49
+        changeStep:4.9
       }
     };
     this.timeThreshold = 60*5 * 1000;
