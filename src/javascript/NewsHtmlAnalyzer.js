@@ -10,12 +10,17 @@ require("fx.wall.street.analyzer",function(namespace){
     };
     namespace.NewsAnalyzer.prototype.getNewItems=function(){
         var items=[];
+        var filter={};
         $('.news.type-text.new').each(function(idx,item){
             var item=fx.wall.street.analyzer.NewsAnalyzer.getItem($(this));
             var newsAnalyzer=fx.wall.street.analyzer.newsAnalyzer;
             if(!newsAnalyzer.lastUrl[item.url]){
                 newsAnalyzer.changed=true;
-                items.push(item);
+                var idx=item.title+item.content;
+                if(!filter[idx]){
+                    items.push(item);
+                    filter[idx]=true;
+                }
             }
             $(this).removeClass('new');
         });

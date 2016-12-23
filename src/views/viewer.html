@@ -9,13 +9,44 @@
 </head>
 <body>
 <div>
+    <div class="fxseperator"></div>
+    <div class="fxtitle">选项</div>
     <div>
     <label for="show-news">显示消息</label>
     <input type="checkbox" id="show-news"/>
     </div>
-    价格列表
+    <div class="fxseperator"></div>
+    <div class="fxtitle">波动差监控</div>
     <div>
-        <table id="show-prices" class="fxbody">
+        <table>
+            <tr>
+                <td>黄金白银波动差:</td>
+                <td id="gold-silver-diff">0</td>
+                <td>主波动:</td>
+                <td id="gold-silver-main"></td>
+            </tr>
+            <tr>
+                <td>黄金美元波动差:</td>
+                <td id="gold-usd-diff">0</td>
+                <td>主波动:</td>
+                <td id="gold-usd-main"></td>
+            </tr>
+        </table>
+    </div>
+    <div class="fxseperator"></div>
+    <div class="fxtitle">
+        价格列表
+    </div>
+    <div>
+        <table id="current-show-prices" class="fxbody">
+
+        </table>
+    </div>
+    <div class="fxtitle">
+        添加
+    </div>
+    <div>
+        <table id="avaliable-show-prices" class="fxbody">
 
         </table>
     </div>

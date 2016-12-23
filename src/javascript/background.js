@@ -1,5 +1,7 @@
 var namespace = require("fx.wall.street.controller", function(namespace) {
   namespace.ItemController = function() {
+    // Save it using the Chrome extension storage API.
+    var self=this;
     this.name = {
       "欧元/美元": {
         highestPrice: null,
@@ -12,14 +14,91 @@ var namespace = require("fx.wall.street.controller", function(namespace) {
         changeStep:4.9
       }
     };
+    chrome.storage.sync.get('fxMonitorMonitoring', function(item) {
+      if(item!==undefined&&!item.fxMonitorMonitoring!==undefined){
+        self.name=item.fxMonitorMonitoring;
+        self.initialize();
+      }
+    });
     this.timeThreshold = 60*5 * 1000;
     this.defaultChangeStep=5;
     this.defaultGapThreshold = 5;
     this.updateCount = 0;
     this.updateCountTotal = 0;
+    this.gold={};
+    this.silver={};
+    this.eur={};
+    this.usd={};
+    this.compareDiffThr=0.6;
+    this.compareDiffStep=0.1;
+    this.lastSilverGoldDiffThr=this.compareDiffThr;
+    this.lastGoldUsdDiffThr=this.compareDiffThr;
+    this.goldSilverDiff=0;
+    this.goldUsdDiff=0;
+    this.goldSilverMain="未知";
+    this.goldUsdMain="未知";
+  };
+  namespace.ItemController.prototype.initialize=function(){
+    for(var key in this.name){
+      if(this.name[key].time!==undefined){
+         this.name[key].time=null;
+      }
+    }
   };
   namespace.ItemController.prototype.formatPrice = function(price, digit) {
     return price.toFixed(digit + 0.000000001);
+  };
+  function formatPercent(value){
+    if(value==0){
+      return ''+value;
+    }
+    var text=''+value;
+    var res='';
+    var idx=0;
+    for(var i=0;i<text.length;i++){
+      if(text[i]!='.' && text[i]!='0'&&text[i]!='-'){
+        idx=i;
+        break;
+      }
+    }
+    res=text.substr(0,idx+2)+'%';
+    return res;
+  }
+  namespace.ItemController.prototype.checkCompareDiff=function(){
+    var goldDiff=parseFloat(this.gold.diffPercent);
+    var silverDiff=parseFloat(this.silver.diffPercent);
+    var eurDiff=parseFloat(this.eur.diffPercent);
+    var usdDiff=parseFloat(this.usd.diffPercent);
+    var silverGoldDiff=goldDiff-silverDiff;
+    var goldUsdDiff=goldDiff+usdDiff;
+    this.goldSilverDiff=formatPercent(silverGoldDiff);
+    this.goldUsdDiff=formatPercent(goldUsdDiff);
+    var goldSilverMain=(Math.abs(goldDiff)>Math.abs(silverDiff)?("黄金("+goldDiff+")"):("白银("+silverDiff+")"));
+    var goldUsdMain=(Math.abs(goldDiff)>Math.abs(usdDiff)?("黄金("+goldDiff+")"):("美元指数("+usdDiff+")"));
+    this.goldSilverMain=goldSilverMain;
+    this.goldUsdMain=goldUsdMain;
+    var silverGoldDiffAbs=Math.abs(silverGoldDiff);
+    if(silverGoldDiffAbs>this.lastSilverGoldDiffThr){
+       this.lastSilverGoldDiffThr=Math.abs(silverGoldDiff)+this.compareDiffStep;
+       var content="黄金白银波动异常,波动差:"+formatPercent(silverGoldDiff)+" 主波动:"+goldSilverMain+"";
+       this.showInfo({title: '提醒', content: content});
+    }
+    else if(this.lastSilverGoldDiffThr>this.compareDiffThr&&silverGoldDiffAbs<this.compareDiffThr-this.compareDiffStep){
+      this.lastSilverGoldDiffThr=this.compareDiffThr;
+      var content="黄金白银恢复正常,波动差:"+formatPercent(silverGoldDiff);
+      this.showInfo({title: '提醒', content: content});
+    }
+    var goldUsdDiffAbs=Math.abs(goldUsdDiff);
+    if(goldUsdDiffAbs>this.lastGoldUsdDiffThr){
+      this.lastGoldUsdDiffThr=Math.abs(goldUsdDiffAbs)+this.compareDiffStep;
+      var content="黄金美元波动异常,波动差:"+formatPercent(goldUsdDiff)+" 主波动:"+goldUsdMain;
+      this.showInfo({title: '提醒', content: content});
+    }
+    else if(this.lastGoldUsdDiffThr>this.compareDiffThr&&goldUsdDiffAbs<this.compareDiffThr-this.compareDiffStep){
+      this.lastGoldUsdDiffThr=this.compareDiffThr;
+      var content="黄金美元恢复正常,波动差:"+formatPercent(goldUsdDiff);
+      this.showInfo({title: '提醒', content: content});
+    }
   };
   namespace.ItemController.prototype.updateItems = function(items) {
     var name = this.name;
@@ -29,6 +108,20 @@ var namespace = require("fx.wall.street.controller", function(namespace) {
     var nowTime = new Date();
     for (var i = 0; i < items.length; i++) {
       var itemName = items[i].name;
+      switch(itemName){
+        case "黄金":
+            this.gold=items[i];
+              break;
+        case "白银":
+            this.silver=items[i];
+              break;
+        case "美元指数":
+            this.usd=items[i];
+              break;
+        case "欧元/美元":
+            this.eur=items[i];
+              break;
+      }
       if (this.name[itemName] !== undefined) {
         if (this.name[itemName].time === null) {
           this.name[itemName].time = new Date();
@@ -70,6 +163,7 @@ var namespace = require("fx.wall.street.controller", function(namespace) {
         }
       }
     }
+    this.checkCompareDiff();
     for (var i = 0; i < items.length; i++) {
       if (name[items[i].name]) {
         count++;
@@ -135,12 +229,21 @@ var namespace = require("fx.wall.street.controller", function(namespace) {
     this.showNews = true;
   };
   namespace.NewsController.prototype.show = function(news) {
-    this.showInfo({title: news.title, content: news.content});
+    this.showInfo({title: news.title, content: news.content,url:news.url});
   };
   namespace.NewsController.prototype.showInfo = function(info) {
     var notification = new Notification(info.title, {
       icon: 'image/FX48.png',
       body: info.content
+    });
+    notification.addEventListener('click', function() {
+      notification.close();
+      if(info.url){
+        window.open("http://live.wallstreetcn.com/"+info.url,'_blank');
+      }
+      else{
+        window.open("www.baidu.com","_blank");
+      }
     });
     var closeFunction = function() {
       arguments.callee.notification.close();
@@ -222,6 +325,7 @@ var startMonitorBackground = function() {
   threshold = 10000;
   intervalTimer = setInterval(function() {
     var now = new Date().getTime();
+    console.log('debug.');
     if (now - backgroundTick > threshold) {
       restartBackground();
       clearInterval(intervalTimer);
@@ -245,8 +349,18 @@ chrome.runtime.onMessage.addListener(
     else {
       switch (request.type) {
         case 'UpdateItems':
-          backgroundTick = new Date().getTime();
           var items = request.data;
+            for(var i=0;i<items.length;i++){
+              if(items[i].current!==undefined){
+                if(/N\/A/.test(items[i].current)){
+                  backgroundTick=0;
+                }
+                else{
+                  backgroundTick = new Date().getTime();
+                }
+                break;
+              }
+            }
           itemController.updateItems(items);
           globalItems = items;
           if (!started) {
@@ -264,7 +378,11 @@ chrome.runtime.onMessage.addListener(
             news: globalNews,
             enableBackground: document.getElementById('fx-watcher') != null,
             currentPrice: itemController.name,
-            enableShowNews: newsController.showNews
+            enableShowNews: newsController.showNews,
+            goldSilverDiff:itemController.goldSilverDiff,
+            goldUsdDiff:itemController.goldUsdDiff,
+            goldSilverMain:itemController.goldSilverMain,
+            goldUsdMain:itemController.goldUsdMain
           });
           break;
         case 'QueryNews':
@@ -298,6 +416,7 @@ chrome.runtime.onMessage.addListener(
               changeStep:this.defaultChangeStep
             };
           }
+          chrome.storage.sync.set({"fxMonitorMonitoring":itemController.name});
           break;
         case 'EnableBackground':
           var node = null;
