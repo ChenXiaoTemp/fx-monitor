@@ -24,7 +24,8 @@
   "content_scripts": [
     {
       "matches": [
-        "http://markets.wallstreetcn.com/*"
+        "http://markets.wallstreetcn.com/*",
+        "https://markets.wallstreetcn.com/*"
       ],
       "js": [
         "javascript/Utils.js",
@@ -36,7 +37,8 @@
     },
     {
       "matches": [
-        "http://markets.wallstreetcn.com/*"
+        "http://markets.wallstreetcn.com/*",
+        "https://markets.wallstreetcn.com/*"
       ],
       "js": [
         "javascript/Utils.js",

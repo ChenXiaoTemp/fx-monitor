@@ -14,8 +14,8 @@ var namespace = require("fx.wall.street.controller", function(namespace) {
         changeStep:4.9
       }
     };
-    chrome.storage.sync.get('fxMonitorMonitoring', function(item) {
-      if(item!==undefined&&!item.fxMonitorMonitoring!==undefined){
+    chrome.storage.local.get('fxMonitorMonitoring', function(item) {
+      if(item!==undefined&&item.fxMonitorMonitoring!==undefined){
         self.name=item.fxMonitorMonitoring;
         self.initialize();
       }
@@ -392,7 +392,9 @@ chrome.runtime.onMessage.addListener(
           sendResponse(document.getElementById('fx-watcher') != null);
           break;
         case 'ChangeItem':
-          itemController.name = request.data;
+          if(request.data){
+             itemController.name = request.data;
+          }
           break;
         case 'ShowNews':
           newsController.showNews = request.data;
@@ -416,7 +418,7 @@ chrome.runtime.onMessage.addListener(
               changeStep:this.defaultChangeStep
             };
           }
-          chrome.storage.sync.set({"fxMonitorMonitoring":itemController.name});
+          chrome.storage.local.set({"fxMonitorMonitoring":itemController.name});
           break;
         case 'EnableBackground':
           var node = null;
